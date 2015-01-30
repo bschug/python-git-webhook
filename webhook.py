@@ -6,7 +6,16 @@ import os
 import urllib2
 
 def webhook_post(url, oldrev, newrev, refname, repo_name, user_name):
-    commits = get_commits(oldrev, newrev)
+    if len(oldrev.strip('0')) == 0:
+        webhook_post_newbranch(url, newrev, refname, repo_name, user_name)
+    elif len(newrev.strip('0')) == 0:
+        webhook_post_deletebranch(url, refname, repo_name, user_name)
+    else:
+        webhook_post_push(url, oldrev, newrev, refname, repo_name, user_name)
+
+def webhook_post_push(url, oldrev, newrev, refname, repo_name, user_name):
+    gitlog = subprocess.check_output('git log --name-status ' + oldrev + '..' + newrev, shell=True)
+    commits = parse_gitlog(gitlog)
     payload = {
         'ref': refname,
         'before': oldrev,
@@ -24,7 +33,46 @@ def webhook_post(url, oldrev, newrev, refname, repo_name, user_name):
         }
     }
     json_payload = json.dumps(payload)
-    u = urllib2.urlopen(url, json_payload)
+    urllib2.urlopen(url, json_payload)
+
+def webhook_post_newbranch(url, newrev, refname, repo_name, user_name):
+    gitlog = subprocess.check_output('git log --name-status ' + newrev + ' --not --branches=*', shell=True)
+    commits = parse_gitlog(gitlog)
+    payload = {
+        'ref': refname,
+        'after': newrev,
+        'created': True,
+        'deleted': False,
+        'forced': False,
+        'commits': commits,
+        'repository': {
+            'name': repo_name
+        },
+        'pusher': {
+            'name': user_name
+        }
+    }
+    if len(commits) > 0:
+        payload['head_commit'] = commits[0]
+    
+    json_payload = json.dumps(payload)
+    urllib2.urlopen(url, json_payload)
+
+def webhook_post_deletebranch(url, refname, repo_name, user_name):
+    payload = {
+        'ref': refname,
+        'created': False,
+        'deleted': True,
+        'forced': False,
+        'repository': {
+            'name': repo_name
+        },
+        'pusher': {
+            'name': user_name
+        }
+    }
+    json_payload = json.dumps(payload)
+    urllib2.urlopen(url, json_payload)
 
 def get_commits(oldrev, newrev):
     gitlog = subprocess.check_output('git log --name-status ' + oldrev + '..' + newrev, shell=True)
