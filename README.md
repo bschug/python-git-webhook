@@ -20,3 +20,8 @@ repo_name = os.environ['GL_REPO']
 and replace the `os.environ[...]` parts with a user name and the name of your repository.
 
 Alternatively, you can set the `GL_REPO` and `GL_USER` environment variables to some sensible values.
+
+Also remove the lines that say
+
+    check_gitolite_env('GL_USER')
+    check_gitolite_env('GL_REPO')
