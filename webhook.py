@@ -5,6 +5,10 @@ import sys
 import os
 import urllib2
 
+# globals
+lineNr = 0
+
+
 def webhook_post(url, oldrev, newrev, refname, repo_name, user_name):
     if len(oldrev.strip('0')) == 0:
         webhook_post_newbranch(url, newrev, refname, repo_name, user_name)
@@ -16,6 +20,8 @@ def webhook_post(url, oldrev, newrev, refname, repo_name, user_name):
 def webhook_post_push(url, oldrev, newrev, refname, repo_name, user_name):
     gitlog = subprocess.check_output('git log --name-status ' + oldrev + '..' + newrev, shell=True)
     commits = parse_gitlog(gitlog)
+    if len(commits) == 0:
+        raise Exception('git log returned no commits')
     payload = {
         'ref': refname,
         'before': oldrev,
@@ -64,6 +70,7 @@ def webhook_post_deletebranch(url, refname, repo_name, user_name):
         'created': False,
         'deleted': True,
         'forced': False,
+        'commits': [],
         'repository': {
             'name': repo_name
         },
@@ -78,8 +85,6 @@ def get_commits(oldrev, newrev):
     gitlog = subprocess.check_output('git log --name-status ' + oldrev + '..' + newrev, shell=True)
     commits = parse_gitlog(gitlog)
     return commits
-
-lineNr = 0
 
 def parse_gitlog(gitlog_output):
     global lineNr
@@ -180,7 +185,27 @@ def error(msg):
     print msg
     exit(1)
 
+def check_gitolite_env(env_var_name):
+    if not env_var_name in os.environ:
+        print 'Error posting webhook: '
+        print '    environment variable ' + env_var_name + ' is not defined'
+        print '    if you are not using gitolite, please define it yourself or modify this script'
+        print 'This error does not mean that your push failed.'
+        sys.exit()
+
 if __name__=='__main__':
+    if len(sys.argv) < 4:
+        print 'Error posting webhook: '
+        print '    not enough parameters given to script -- are you sure you registered this as an update hook?'
+        print '    arguments: '
+        for arg in sys.argv:
+            print '        ' + str(i) + ': "' + arg + '"'
+        print 'This error does not mean that your push failed.'
+        sys.exit()
+
+    check_gitolite_env('GL_USER')
+    check_gitolite_env('GL_REPO')
+        
     refname = sys.argv[1]
     oldrev = sys.argv[2]
     newrev = sys.argv[3]
@@ -188,5 +213,14 @@ if __name__=='__main__':
     repo_name = os.environ['GL_REPO']
 
     url = "ADD YOUR URL HERE"
-    
-    webhook_post(url, oldrev, newrev, refname, repo_name, user_name)
+
+    try:
+        webhook_post(url, oldrev, newrev, refname, repo_name, user_name)
+    except:
+        ex = sys.exc_info()[0]
+        print 'Error posting webhook: '
+        print '    refname: ' + refname
+        print '    oldrev: ' + oldrev
+        print ex
+        print
+        print 'This error does not mean that your push failed.'
