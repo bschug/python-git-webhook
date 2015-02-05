@@ -154,7 +154,7 @@ def parse_commit_message(commit, gitlog):
     commit['message'] = ''
     lineNr += 1
     line = gitlog.pop(0)
-    while line.strip() != '':
+    while line.startswith('    '):
         commit['message'] += line.strip() + os.linesep
         if len(gitlog) == 0:
             return
@@ -168,7 +168,7 @@ def parse_commit_files(commit, gitlog):
     commit['modified'] = []
     lineNr += 1
     line = gitlog.pop(0)
-    while line.strip() != '':
+    while line != '':
         if line[:1] == 'M':
             commit['modified'].append(line[1:].strip())
         elif line[:1] == 'A':
