@@ -60,7 +60,7 @@ def webhook_post_newbranch(url, newrev, refname, repo_name, user_name):
     }
     if len(commits) > 0:
         payload['head_commit'] = commits[0]
-    
+
     json_payload = json.dumps(payload)
     urllib2.urlopen(url, json_payload)
 
@@ -95,16 +95,29 @@ def parse_gitlog(gitlog_output):
         commit = parse_commit(gitlog)
         commits.append(commit)
     return commits
-        
+
 def parse_commit(gitlog):
     commit = {}
     parse_commit_firstline(commit, gitlog)
-    if gitlog[0].strip().startswith('Author'):
+
+    # Handle the commit headers, some of which may be missing in some cases:
+    if gitlog[0].startswith('Merge'):
+        parse_commit_merge(commit, gitlog)
+    if gitlog[0].startswith('Author'):
         parse_commit_author(commit, gitlog)
+    if gitlog[0].startswith('Date'):
         parse_commit_date(commit, gitlog)
-        skip_newline(gitlog)
-    parse_commit_message(commit, gitlog)
-    parse_commit_files(commit, gitlog)
+
+    skip_newline(gitlog)
+
+    # Commit message is always indented with four spaces.
+    # We check this to handle the case of an empty commit message.
+    if gitlog[0].startswith('    '):
+        parse_commit_message(commit, gitlog)
+
+    # There is not always a file section (e.g. merge commits without conflicts)
+    if gitlog[0][1] == ' ':
+        parse_commit_files(commit, gitlog)
     return commit
 
 def parse_commit_firstline(commit, gitlog):
@@ -114,6 +127,12 @@ def parse_commit_firstline(commit, gitlog):
     if words[0] != 'commit':
         error("expected begin of commit, but found '" + words[0] + "' in line " + str(lineNr))
     commit['id'] = words[1]
+
+def parse_commit_merge(commit, gitlog):
+    # we just ignore the Merge: line
+    global lineNr
+    lineNr += 1
+    gitlog.pop(0)
 
 def parse_commit_author(commit, gitlog):
     global lineNr
@@ -205,7 +224,7 @@ if __name__=='__main__':
 
     check_gitolite_env('GL_USER')
     check_gitolite_env('GL_REPO')
-        
+
     refname = sys.argv[1]
     oldrev = sys.argv[2]
     newrev = sys.argv[3]
@@ -221,6 +240,7 @@ if __name__=='__main__':
         print 'Error posting webhook: '
         print '    refname: ' + refname
         print '    oldrev: ' + oldrev
+        print '    newrev: ' + newrev
         print ex
         print
         print 'This error does not mean that your push failed.'
