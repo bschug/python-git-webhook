@@ -1,0 +1,69 @@
+{
+    "after": "my_newrev",
+    "before": "my_oldrev",
+    "commits": [
+        {
+            "author": {
+                "email": "friedhold@happy-tuesday.com",
+                "name": "Friedhold Waldstein"
+            },
+            "id": "4532422669688383778a02c220472466c52cd3a3",
+            "message": "Merge branch 'master' of origin/my_repo\r\n\r\n",
+            "timestamp": "Tue Mar 3 18:49:35 2015 +0100"
+        },
+        {
+            "author": {
+                "email": "friedhold@happy-tuesday.com",
+                "name": "Friedhold Waldstein"
+            },
+            "id": "0faa9b0cfd754601cc3b257365fc9a230730d604",
+            "message": "Merge branch 'develop' into feature/refactorGameState\r\n\r\nConflicts:\r\nProjectSettings/EditorBuildSettings.asset\r\n\r\n",
+            "timestamp": "Tue Mar 3 18:48:31 2015 +0100"
+        },
+        {
+            "author": {
+                "email": "karlwurst@happy-tuesday.com",
+                "name": "Karlwurst Hochberg"
+            },
+            "id": "e90d8a86a2c88900b700b998a7541536070833f6",
+            "message": "Merge branch 'master' of origin/my_repo\r\n\r\n",
+            "timestamp": "Tue Mar 3 18:43:50 2015 +0100"
+        },
+        {
+            "added": [],
+            "author": {
+                "email": "karlwurst@happy-tuesday.com",
+                "name": "Karlwurst Hochberg"
+            },
+            "id": "193803bd53509e88e08590b98eba66d010ae5530",
+            "message": "track type visualization\r\n\r\nand optimization for cars (memory / texture lookups)\r\n\r\n",
+            "modified": [
+                "Assets/Animations/UI/UIStartScreen/Side.anim",
+                "Assets/Materials/CarSelectorTrackgroundGravel.mat",
+                "Assets/Materials/CarSelectorTrackgroundMud.mat",
+                "Assets/Materials/CarSelectorTrackgroundSnow.mat"
+            ],
+            "removed": [],
+            "timestamp": "Tue Mar 3 18:43:38 2015 +0100"
+        }
+    ],
+    "created": false,
+    "deleted": false,
+    "forced": false,
+    "head_commit": {
+        "author": {
+            "email": "friedhold@happy-tuesday.com",
+            "name": "Friedhold Waldstein"
+        },
+        "id": "4532422669688383778a02c220472466c52cd3a3",
+        "message": "Merge branch 'master' of origin/my_repo\r\n\r\n",
+        "timestamp": "Tue Mar 3 18:49:35 2015 +0100"
+    },
+    "pusher": {
+        "name": "my_user_name"
+    },
+    "ref": "my_refname",
+    "repository": {
+        "name": "my_repo_name"
+    }
+}

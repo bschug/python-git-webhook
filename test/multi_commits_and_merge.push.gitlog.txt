@@ -1,0 +1,36 @@
+commit 4532422669688383778a02c220472466c52cd3a3
+Merge: 0faa9b0 e90d8a8
+Author: Friedhold Waldstein <friedhold@happy-tuesday.com>
+Date:   Tue Mar 3 18:49:35 2015 +0100
+
+    Merge branch 'master' of origin/my_repo
+
+commit 0faa9b0cfd754601cc3b257365fc9a230730d604
+Merge: e622882 a6a8c11
+Author: Friedhold Waldstein <friedhold@happy-tuesday.com>
+Date:   Tue Mar 3 18:48:31 2015 +0100
+
+    Merge branch 'develop' into feature/refactorGameState
+
+    Conflicts:
+        ProjectSettings/EditorBuildSettings.asset
+
+commit e90d8a86a2c88900b700b998a7541536070833f6
+Merge: 193803b e622882
+Author: Karlwurst Hochberg <karlwurst@happy-tuesday.com>
+Date:   Tue Mar 3 18:43:50 2015 +0100
+
+    Merge branch 'master' of origin/my_repo
+
+commit 193803bd53509e88e08590b98eba66d010ae5530
+Author: Karlwurst Hochberg <karlwurst@happy-tuesday.com>
+Date:   Tue Mar 3 18:43:38 2015 +0100
+
+    track type visualization
+
+    and optimization for cars (memory / texture lookups)
+
+M       Assets/Animations/UI/UIStartScreen/Side.anim
+M       Assets/Materials/CarSelectorTrackgroundGravel.mat
+M       Assets/Materials/CarSelectorTrackgroundMud.mat
+M       Assets/Materials/CarSelectorTrackgroundSnow.mat
