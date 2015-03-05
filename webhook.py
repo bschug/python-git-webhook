@@ -245,7 +245,7 @@ if __name__=='__main__':
     user_name = os.environ['GL_USER']
     repo_name = os.environ['GL_REPO']
 
-    url = ""
+    url = "ADD YOUR URL HERE"
 
     try:
         webhook_post(url, oldrev, newrev, refname, repo_name, user_name)
