@@ -1,0 +1,12 @@
+commit 193803bd53509e88e08590b98eba66d010ae5530
+Author: Karlwurst Hochberg <karlwurst@happy-tuesday.com>
+Date:   Tue Mar 3 18:43:38 2015 +0100
+
+    track type visualization
+
+    and optimization for cars (memory / texture lookups)
+
+M       Assets/Animations/UI/UIStartScreen/Side.anim
+M       Assets/Materials/CarSelectorTrackgroundGravel.mat
+M       Assets/Materials/CarSelectorTrackgroundMud.mat
+M       Assets/Materials/CarSelectorTrackgroundSnow.mat

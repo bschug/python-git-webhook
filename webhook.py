@@ -4,21 +4,36 @@ import json
 import sys
 import os
 import urllib2
+import functools
 
 # globals
 lineNr = 0
 
+def send_json_post(url, payload):
+    json_payload = json.dumps(payload)
+    urllib2.urlopen(url, json_payload)
+
 
 def webhook_post(url, oldrev, newrev, refname, repo_name, user_name):
-    if len(oldrev.strip('0')) == 0:
-        webhook_post_newbranch(url, newrev, refname, repo_name, user_name)
-    elif len(newrev.strip('0')) == 0:
-        webhook_post_deletebranch(url, refname, repo_name, user_name)
-    else:
-        webhook_post_push(url, oldrev, newrev, refname, repo_name, user_name)
+    # we work with a callback here to make the webhook_post_* functions more easily testable
+    callback = functools.partial(send_json_payload, url=url)
 
-def webhook_post_push(url, oldrev, newrev, refname, repo_name, user_name):
-    gitlog = subprocess.check_output('git log --name-status ' + oldrev + '..' + newrev, shell=True)
+    # we need to distinguish between special cases where branches are created or deleted
+    # because in those cases we cannot use the normal git log and the result looks very different
+
+    if len(oldrev.strip('0')) == 0:
+        gitlog = subprocess.check_output('git log --name-status ' + newrev + ' --not --branches=*', shell=True)
+        webhook_post_newbranch(gitlog, newrev, refname, repo_name, user_name, callback)
+
+    elif len(newrev.strip('0')) == 0:
+        webhook_post_deletebranch(refname, repo_name, user_name, callback)
+
+    else:
+        gitlog = subprocess.check_output('git log --name-status ' + oldrev + '..' + newrev, shell=True)
+        webhook_post_push(gitlog, oldrev, newrev, refname, repo_name, user_name, callback)
+
+
+def webhook_post_push(gitlog, oldrev, newrev, refname, repo_name, user_name, callback):
     commits = parse_gitlog(gitlog)
     if len(commits) == 0:
         raise Exception('git log returned no commits')
@@ -38,11 +53,9 @@ def webhook_post_push(url, oldrev, newrev, refname, repo_name, user_name):
             'name': user_name
         }
     }
-    json_payload = json.dumps(payload)
-    urllib2.urlopen(url, json_payload)
+    callback(payload=payload)
 
-def webhook_post_newbranch(url, newrev, refname, repo_name, user_name):
-    gitlog = subprocess.check_output('git log --name-status ' + newrev + ' --not --branches=*', shell=True)
+def webhook_post_newbranch(gitlog, newrev, repo_name, user_name, callback):
     commits = parse_gitlog(gitlog)
     payload = {
         'ref': refname,
@@ -61,10 +74,9 @@ def webhook_post_newbranch(url, newrev, refname, repo_name, user_name):
     if len(commits) > 0:
         payload['head_commit'] = commits[0]
 
-    json_payload = json.dumps(payload)
-    urllib2.urlopen(url, json_payload)
+    callback(payload=payload)
 
-def webhook_post_deletebranch(url, refname, repo_name, user_name):
+def webhook_post_deletebranch(refname, repo_name, user_name, callback):
     payload = {
         'ref': refname,
         'created': False,
@@ -78,8 +90,7 @@ def webhook_post_deletebranch(url, refname, repo_name, user_name):
             'name': user_name
         }
     }
-    json_payload = json.dumps(payload)
-    urllib2.urlopen(url, json_payload)
+    callback(payload=payload)
 
 def get_commits(oldrev, newrev):
     gitlog = subprocess.check_output('git log --name-status ' + oldrev + '..' + newrev, shell=True)
@@ -109,14 +120,10 @@ def parse_commit(gitlog):
         parse_commit_date(commit, gitlog)
 
     skip_newline(gitlog)
-
-    # Commit message is always indented with four spaces.
-    # We check this to handle the case of an empty commit message.
-    if gitlog[0].startswith('    '):
-        parse_commit_message(commit, gitlog)
+    parse_commit_message(commit, gitlog)
 
     # There is not always a file section (e.g. merge commits without conflicts)
-    if gitlog[0][1] == ' ':
+    if is_commit_file_line(gitlog[0]):
         parse_commit_files(commit, gitlog)
     return commit
 
@@ -171,14 +178,21 @@ def skip_newline(gitlog):
 def parse_commit_message(commit, gitlog):
     global lineNr
     commit['message'] = ''
-    lineNr += 1
-    line = gitlog.pop(0)
-    while line.startswith('    '):
+    while len(gitlog[0]) == 0 or gitlog[0].startswith('    '):
+        lineNr += 1
+        line = gitlog.pop(0)
         commit['message'] += line.strip() + os.linesep
         if len(gitlog) == 0:
             return
-        lineNr += 1
-        line = gitlog.pop(0)
+
+def is_commit_file_line(line):
+    if len(line) == 0:
+        return False
+    if not (line[0] == 'M' or line[0] == 'A' or line[0] == 'D'):
+        return False
+    if not (line[1:].startswith('    ')):
+        return False
+    return True
 
 def parse_commit_files(commit, gitlog):
     global lineNr
@@ -231,7 +245,7 @@ if __name__=='__main__':
     user_name = os.environ['GL_USER']
     repo_name = os.environ['GL_REPO']
 
-    url = "ADD YOUR URL HERE"
+    url = ""
 
     try:
         webhook_post(url, oldrev, newrev, refname, repo_name, user_name)
