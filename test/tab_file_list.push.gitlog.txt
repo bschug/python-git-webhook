@@ -1,0 +1,7 @@
+commit 9573a23fc5ec5a0f11350d66701edaa861cb88bc
+Author: Mannwurst Wildwald <mannwurst@happy-tuesday.com>
+Date:   Tue Mar 3 21:03:56 2015 +0100
+
+    Fixes straight part evaluation func algo.
+
+M	Assets/Scripts/VWRA/CourseManager.cs

@@ -16,7 +16,7 @@ def send_json_post(url, payload):
 
 def webhook_post(url, oldrev, newrev, refname, repo_name, user_name):
     # we work with a callback here to make the webhook_post_* functions more easily testable
-    callback = functools.partial(send_json_payload, url=url)
+    callback = functools.partial(send_json_post, url=url)
 
     # we need to distinguish between special cases where branches are created or deleted
     # because in those cases we cannot use the normal git log and the result looks very different
@@ -190,7 +190,7 @@ def is_commit_file_line(line):
         return False
     if not (line[0] == 'M' or line[0] == 'A' or line[0] == 'D'):
         return False
-    if not (line[1:].startswith('    ')):
+    if not (line[1:].startswith('    ') or line[1:].startswith('\t')):
         return False
     return True
 
